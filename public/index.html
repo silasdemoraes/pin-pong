@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.io Client</title>
+</head>
+<body>
+  <canvas id="gameCanvas" width="600" height="600" style="border:1px solid #000;"></canvas>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Configura o fundo verde
+    ctx.fillStyle = 'green';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    socket.on('connect', () => {
+      console.log('Connected to server');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+
+    socket.on('game-start', () => {
+      console.log('Game started!');
+    });
+
+    socket.on('game-reset', () => {
+      console.log('Game reset! Waiting for players...');
+    });
+
+    socket.on('game-update', (game) => {
+      console.log(game);
+      drawGame(game);
+    });
+
+    function drawGame(game) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height); 
+
+      ctx.fillStyle = 'green';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(game.ball.x, game.ball.y, game.ball.width, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.closePath();
+
+      ctx.fillStyle = 'blue';
+      ctx.fillRect(game.player1.x, game.player1.y, game.player1.width, game.player1.height);
+
+      ctx.fillStyle = 'red';
+      ctx.fillRect(game.player2.x, game.player2.y, game.player2.width, game.player2.height);
+
+      ctx.fillStyle = 'black';
+      ctx.font = '16px Arial';
+      ctx.fillText(`Player 1: ${game.player1.score}`, 10, 20);
+      ctx.fillText(`Player 2: ${game.player2.score}`, 10, canvas.height - 10);
+    }
+
+    function setupKeyListeners() {
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+          console.log(event.key);
+          socket.emit('keydown', { key: event.key });
+        }
+      });
+    
+      window.addEventListener('keyup', (event) => {
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+          console.log(event.key);
+          socket.emit('keyup', { key: event.key });
+        }
+      });
+    }
+
+    setupKeyListeners();
+  </script>
+</body>
+</html>
